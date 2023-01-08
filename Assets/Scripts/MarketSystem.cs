@@ -3,88 +3,171 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MarketSystem : MonoBehaviour
+public class MarketSystem : MonoSingleton<MarketSystem>
 {
-    //iptal 
-    //Ýtem data baðanacak ve UI yerleþtirilmesi denemleri yapýlacak
-    /*[System.Serializable]
-    public class Prop
+    [System.Serializable]
+    public class FieldBool
     {
-        public Button propButton;
-        public Image propImage;
-        public Image propMoneyImage;
-        public Text propName;
-        public Text propMoney;
-        public Text propCount;
+        public List<bool> PlayerColor = new List<bool>();
+        public int equipedCount;
     }
 
     [System.Serializable]
-    public class Market
+    public class FieldRivalColor
     {
-        public Image scrollBarTemplate;
-        public Image marketImage;
-        public Button marketButtton;
-        public Prop[] marketField;
+        public List<int> PlayerColorPrice = new List<int>();
+        public List<Material> PlayerColorMaterial = new List<Material>();
+        public List<Button> PlayerImageButton = new List<Button>();
+        public List<Image> PlayerImageLock = new List<Image>();
     }
-    public Market[] market;
 
-    [SerializeField] private GameObject upperScroll;
-    [SerializeField] private GameObject MarketPanel;
+    public FieldBool fieldBool;
+    public FieldRivalColor fieldPlayerColor;
 
-    [SerializeField] private int _OPScrollBarTemplateCount, _OPUpperScrollBarTemplateCount, _OPPropTemplateCount;
-    [SerializeField] private float verticalPropPosPlus, horizontalMarketPosPlus, verticalPropPosTemplate, horizontalMarketPosTemplate;
-    [SerializeField] private List<Image> ScrollBars = new List<Image>();
-
-
+    [SerializeField] private GameObject _mainPlayer;
+    public GameObject marketMainPlayer;
+    [SerializeField] private Button _useButton, _equipedButton, _moneyBuyButton, _addBuyButton;
+    [SerializeField] private Text _moneyBuyPriceText;
+    [SerializeField] private Button _marketOpenButton, _marketCloseButton;
+    public GameObject marketPanel;
+    [SerializeField] private Material Mat2D;
+    public int fieldCount;
 
     public void MarketStart()
     {
-        for (int i1 = 0; i1 < market.Length; i1++)
+        MarketOnOffPlacement();
+        PlayerMaterialPlacement();
+        DownButtonPlacement();
+        MarketStartPlacement();
+    }
+
+    public void GameStart()
+    {
+        _marketOpenButton.gameObject.SetActive(false);
+    }
+
+    public void MarketOpenButton()
+    {
+        Buttons.Instance._startPanel.SetActive(false);
+        _marketOpenButton.gameObject.SetActive(false);
+        marketMainPlayer.SetActive(true);
+        marketPanel.SetActive(true);
+        AnimControl.Instance.CallMarketAnim();
+    }
+
+    public void MarketCloseButton()
+    {
+        Buttons.Instance._startPanel.SetActive(true);
+        _marketOpenButton.gameObject.SetActive(true);
+        marketMainPlayer.SetActive(false);
+        marketPanel.SetActive(false);
+    }
+
+    public void FinishGameBackToTheMaterial()
+    {
+        _mainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldBool.equipedCount];
+    }
+
+    private void SelectMarketPlayerColorFieldButton(int count)
+    {
+        fieldCount = count;
+        if (fieldBool.PlayerColor[count] && fieldBool.equipedCount == count)
         {
-            GameObject obj1 = ObjectPool.Instance.GetPooledObject(_OPScrollBarTemplateCount);
-            market[i1].scrollBarTemplate = obj1.GetComponent<Image>();
-            market[i1].scrollBarTemplate.rectTransform.up = new Vector3(0, verticalPropPosTemplate + market[i1].marketField.Length * verticalPropPosPlus, 0);
-            ScrollBars.Add(market[i1].scrollBarTemplate);
-            //boyut ayarla 
-            //satýn alým iþlemi kodlarý girilir
-
-            //marketbutton ata
-            GameObject obj2 = ObjectPool.Instance.GetPooledObject(_OPUpperScrollBarTemplateCount);
-            obj2.transform.SetParent(upperScroll.transform);
-            Image objImage2 = obj2.GetComponent<Image>();
-            objImage2.rectTransform.right = new Vector3(horizontalMarketPosTemplate + i1 * horizontalMarketPosPlus, 0, 0);
-            objImage2 = obj2.transform.GetChild(0).gameObject.GetComponent<Image>();
-            market[i1].marketImage = objImage2;
-            Button objButton2 = obj2.transform.GetChild(0).gameObject.GetComponent<Button>();
-            market[i1].marketButtton = objButton2;
-
-
-            //üst resim ayarla
-            for (int i2 = 0; i2 < market[i1].marketField.Length; i2++)
-            {
-                Prop prop = market[i1].marketField[i2];
-                GameObject obj = ObjectPool.Instance.GetPooledObject(_OPPropTemplateCount);
-                Button objButton = obj.transform.GetChild(0).GetComponent<Button>();
-                prop.propButton = objButton;
-
-                prop.propButton.onClick.AddListener(BuyProp);
-                //button ata
-
-                Image objImage = obj.transform.GetChild(1).GetComponent<Image>();
-                prop.propImage = objImage;
-
-                objImage = obj.transform.GetChild(2).GetComponent<Image>();
-                prop.propMoneyImage = objImage;
-
-                Text objText = obj.transform.GetChild(3).GetComponent<Text>();
-                prop.propName = objText;
-
-                objText = obj.transform.GetChild(4).GetComponent<Text>();
-                prop.propMoney = objText;
-
-                objText = obj.transform.GetChild(5).GetComponent<Text>();
-                prop.propCount = objText;
-            }
+            _equipedButton.gameObject.SetActive(true);
+            _useButton.gameObject.SetActive(false);
+            _moneyBuyButton.gameObject.SetActive(false);
+            _addBuyButton.gameObject.SetActive(false);
         }
-    }*/
+        else if (fieldBool.PlayerColor[count])
+        {
+            _equipedButton.gameObject.SetActive(false);
+            _useButton.gameObject.SetActive(true);
+            _moneyBuyButton.gameObject.SetActive(false);
+            _addBuyButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            _equipedButton.gameObject.SetActive(false);
+            _useButton.gameObject.SetActive(false);
+            _moneyBuyButton.gameObject.SetActive(true);
+            _addBuyButton.gameObject.SetActive(true);
+            _moneyBuyPriceText.text = fieldPlayerColor.PlayerColorPrice[count].ToString();
+            //money para atamasý yap
+        }
+    }
+    private void SelectMarketPlayerColorUseButton()
+    {
+        _equipedButton.gameObject.SetActive(true);
+        _useButton.gameObject.SetActive(false);
+        fieldBool.equipedCount = fieldCount;
+        _mainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldCount];
+        marketMainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldCount];
+        GameManager.Instance.MarketPlacementWrite(fieldBool);
+    }
+    private void SelectMarketPlayerColorMoneyBuyButton()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager.money >= fieldPlayerColor.PlayerColorPrice[fieldCount])
+        {
+            MoneySystem.Instance.MoneyTextRevork(fieldPlayerColor.PlayerColorPrice[fieldCount] * -1);
+            _equipedButton.gameObject.SetActive(false);
+            _useButton.gameObject.SetActive(true);
+            _moneyBuyButton.gameObject.SetActive(false);
+            _addBuyButton.gameObject.SetActive(false);
+            fieldPlayerColor.PlayerImageLock[fieldCount].gameObject.SetActive(false);
+            fieldBool.PlayerColor[fieldCount] = true;
+            GameManager.Instance.MarketPlacementWrite(fieldBool);
+        }
+    }
+    private void SelectMarketPlayerColorAddBuyButton()
+    {
+        //add
+        /*
+                     _equipedButton.gameObject.SetActive(false);
+            _useButton.gameObject.SetActive(true);
+                    _moneyBuyButton.gameObject.SetActive(false);
+            _addBuyButton.gameObject.SetActive(false);
+            fieldBool.PlayerColor[fieldCount] = true;
+            fieldPlayerColor.PlayerImageLock[fieldCount].gameObject.SetActive(false);
+            GameManager.Instance.MarketPlacementWrite(fieldBool);
+         
+         */
+    }
+    private void PlayerMaterialPlacement()
+    {
+        _mainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldBool.equipedCount];
+        marketMainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldBool.equipedCount];
+    }
+    private void DownButtonPlacement()
+    {
+        _useButton.onClick.AddListener(SelectMarketPlayerColorUseButton);
+        _moneyBuyButton.onClick.AddListener(SelectMarketPlayerColorMoneyBuyButton);
+        _addBuyButton.onClick.AddListener(SelectMarketPlayerColorAddBuyButton);
+    }
+    private void MarketStartPlacement()
+    {
+        for (int i = 0; i < fieldPlayerColor.PlayerImageButton.Count; i++)
+        {
+            Material mat = new Material(Mat2D.shader);
+            mat.color = fieldPlayerColor.PlayerColorMaterial[i].color;
+            fieldPlayerColor.PlayerImageButton[i].transform.GetChild(0).GetComponent<Image>().material = mat;
+            fieldPlayerColor.PlayerImageButton[i].transform.GetChild(0).GetComponent<Image>().material.color = fieldPlayerColor.PlayerColorMaterial[i].color;
+            if (fieldBool.PlayerColor[i])
+                fieldPlayerColor.PlayerImageLock[i].gameObject.SetActive(false);
+        }
+        fieldPlayerColor.PlayerImageButton[0].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(0));
+        fieldPlayerColor.PlayerImageButton[1].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(1));
+        fieldPlayerColor.PlayerImageButton[2].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(2));
+        fieldPlayerColor.PlayerImageButton[3].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(3));
+        fieldPlayerColor.PlayerImageButton[4].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(4));
+        fieldPlayerColor.PlayerImageButton[5].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(5));
+        fieldPlayerColor.PlayerImageButton[6].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(6));
+        fieldPlayerColor.PlayerImageButton[7].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(7));
+        fieldPlayerColor.PlayerImageButton[8].onClick.AddListener(() => SelectMarketPlayerColorFieldButton(8));
+    }
+    private void MarketOnOffPlacement()
+    {
+        _marketOpenButton.onClick.AddListener(MarketOpenButton);
+        _marketCloseButton.onClick.AddListener(MarketCloseButton);
+    }
 }

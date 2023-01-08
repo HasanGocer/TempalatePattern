@@ -12,11 +12,11 @@ public class BarSystem : MonoSingleton<BarSystem>
     [SerializeField] private GameObject startPos, finishPos;
     float amount = 0;
 
-    public void BarStopButton(int count)
+    public void BarStopButton()
     {
         isFinish = false;
         BarFactorPlacement(amount);
-        MoneySystem.Instance.MoneyTextRevork(count * barMoneyFactor);
+        MoneySystem.Instance.MoneyTextRevork(GameManager.Instance.addedMoney * barMoneyFactor);
     }
 
     public IEnumerator BarImageFillAmountIenum()

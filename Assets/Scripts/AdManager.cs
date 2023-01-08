@@ -4,36 +4,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AdManager : MonoBehaviour
+public class AdManager : MonoSingleton<AdManager>
 {
-    public static AdManager current;
+    public int count = 0, maxCount = 3;
     public BannerView bannerView;
     public InterstitialAd interstitial;
-    public float intertstitialAdTimer = 3;
-    // Start is called before the first frame update
+    public float intertstitialAdTimer = 5;   
     public void InitializeAds()
     {
-        current = this;
 
         MobileAds.Initialize(initStatus => { });
 
         this.RequestBanner();
+        this.RequestInterstitial();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (intertstitialAdTimer < 0)
+        if (intertstitialAdTimer > 0)
         {
             intertstitialAdTimer -= Time.deltaTime;
         }
+
     }
 
 
     private void RequestBanner()
     {
 #if UNITY_ANDROID
-        string adUnitId = "ca-app-pub-3940256099942544/6300978111";
+        string adUnitId = "ca-app-pub-2964581050083559/6146769664";
 #elif UNITY_IPHONE
             string adUnitId = "ca-app-pub-3940256099942544/2934735716";
 #else
@@ -53,7 +52,7 @@ public class AdManager : MonoBehaviour
     private void RequestInterstitial()
     {
 #if UNITY_ANDROID
-        string adUnitId = "ca-app-pub-3940256099942544/1033173712";
+        string adUnitId = "ca-app-pub-2964581050083559/1378438964";
 #elif UNITY_IPHONE
         string adUnitId = "ca-app-pub-3940256099942544/4411468910";
 #else
@@ -84,23 +83,21 @@ public class AdManager : MonoBehaviour
         }
         return false;
     }
-    private void HandleOnAdClosed(object sender, EventArgs e)
-    {
-        intertstitialAdTimer = 60;
-        Time.timeScale = 1;
-        Camera.main.GetComponent<AudioListener>().enabled = true;
-        RequestInterstitial();
-    }
-
     private void HandleOnAdOpening(object sender, EventArgs e)
     {
         Time.timeScale = 0;
         Camera.main.GetComponent<AudioListener>().enabled = false;
     }
-
+    private void HandleOnAdClosed(object sender, EventArgs e)
+    {
+        intertstitialAdTimer = 5;
+        Time.timeScale = 1;
+        Camera.main.GetComponent<AudioListener>().enabled = true;
+        RequestInterstitial();
+    }
     private void HandleOnAdFailedToLoad(object sender, AdFailedToLoadEventArgs e)
     {
         RequestInterstitial();
     }
-  
+
 }
