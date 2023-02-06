@@ -5,18 +5,18 @@ using UnityEngine.UI;
 
 public class BarSystem : MonoSingleton<BarSystem>
 {
-    [SerializeField] private Image _bar;
-    public bool isFinish = true;
-    [SerializeField] private bool _goRight = true;
-    public int barMoneyFactor;
+    [SerializeField] private Image _barImage;
+    [HideInInspector] public bool isFinish = true;
+    private bool _goRight = true;
+    [HideInInspector] public int barMoneyFactor;
     [SerializeField] private GameObject startPos, finishPos;
     float amount = 0;
 
-    public void BarStopButton()
+    public void BarStopButton(int count)
     {
         isFinish = false;
         BarFactorPlacement(amount);
-        MoneySystem.Instance.MoneyTextRevork(GameManager.Instance.addedMoney * barMoneyFactor);
+        MoneySystem.Instance.MoneyTextRevork(count * barMoneyFactor);
     }
 
     public IEnumerator BarImageFillAmountIenum()
@@ -26,13 +26,13 @@ public class BarSystem : MonoSingleton<BarSystem>
             if (_goRight)
             {
                 amount += Time.deltaTime;
-                _bar.transform.position = Vector2.Lerp(startPos.transform.position, finishPos.transform.position, amount);
+                _barImage.transform.position = Vector2.Lerp(startPos.transform.position, finishPos.transform.position, amount);
                 yield return new WaitForSeconds(Time.deltaTime);
             }
             else
             {
                 amount += Time.deltaTime;
-                _bar.transform.position = Vector2.Lerp(finishPos.transform.position, startPos.transform.position, amount);
+                _barImage.transform.position = Vector2.Lerp(finishPos.transform.position, startPos.transform.position, amount);
                 yield return new WaitForSeconds(Time.deltaTime);
             }
 

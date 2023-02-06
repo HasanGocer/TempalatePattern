@@ -2,16 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using UnityEngine.SceneManagement;
 
 public class Buttons : MonoSingleton<Buttons>
 {
     //managerde bulunacak
+    [Header("Global_Panel")]
+    [Space(10)]
 
-    [SerializeField] private GameObject _money;
+    [SerializeField] private GameObject _globalPanel;
+    public TMP_Text moneyText, levelText;
+
+    [Header("Start_Panel")]
+    [Space(10)]
 
     public GameObject _startPanel;
-    [SerializeField] private Button _startButton;
+    [SerializeField] Button _startButton;
+
+    [Header("Setting_Panel")]
+    [Space(10)]
 
     [SerializeField] private Button _settingButton;
     [SerializeField] private GameObject _settingGame;
@@ -20,117 +30,93 @@ public class Buttons : MonoSingleton<Buttons>
     [SerializeField] private Button _settingBackButton;
     [SerializeField] private Button _soundButton, _vibrationButton;
 
+    [Header("Finish_Panel")]
+    [Space(10)]
+
     public GameObject winPanel, failPanel;
-    [SerializeField] private Button _winPrizeButton, _failButton;
-    public Button winButton;
+    [SerializeField] private Button _winPrizeButton, _winEmptyButton, _failButton;
 
-    public Text finishGameMoneyText;
-    [SerializeField] private GameObject _startObject1;
+    public TMP_Text finishGameMoneyText;
 
-    public Text moneyText, levelText;
 
     private void Start()
     {
-        GameObject.FindObjectOfType<AdManager>().InitializeAds();
         ButtonPlacement();
         SettingPlacement();
         levelText.text = GameManager.Instance.level.ToString();
     }
     public IEnumerator NoThanxOnActive()
     {
+        _winEmptyButton.gameObject.SetActive(false);
         yield return new WaitForSeconds(3);
-        winButton.gameObject.SetActive(true);
+        _winEmptyButton.gameObject.SetActive(true);
     }
 
     private void SettingPlacement()
     {
-        if (GameManager.Instance.sound == 1)
+        SoundSystem soundSystem = SoundSystem.Instance;
+        GameManager gameManager = GameManager.Instance;
+        Image soundImage = _soundButton.gameObject.GetComponent<Image>();
+        Image vibrationImage = _vibrationButton.gameObject.GetComponent<Image>();
+
+        if (gameManager.sound == 1)
         {
-            _soundButton.gameObject.GetComponent<Image>().sprite = _green;
-            SoundSystem.Instance.MainMusicPlay();
+            soundImage.sprite = _green;
+            soundSystem.MainMusicPlay();
         }
         else
         {
-            _soundButton.gameObject.GetComponent<Image>().sprite = _red;
-            SoundSystem.Instance.MainMusicStop();
+            soundImage.sprite = _red;
+            soundSystem.MainMusicStop();
         }
 
-        if (GameManager.Instance.vibration == 1)
-        {
-            _vibrationButton.gameObject.GetComponent<Image>().sprite = _green;
-        }
+        if (gameManager.vibration == 1)
+            vibrationImage.sprite = _green;
         else
-        {
-            _vibrationButton.gameObject.GetComponent<Image>().sprite = _red;
-        }
+            vibrationImage.sprite = _red;
     }
     private void ButtonPlacement()
     {
-        _startButton.onClick.AddListener(StartButton);
         _settingButton.onClick.AddListener(SettingButton);
         _settingBackButton.onClick.AddListener(SettingBackButton);
         _soundButton.onClick.AddListener(SoundButton);
         _vibrationButton.onClick.AddListener(VibrationButton);
         _winPrizeButton.onClick.AddListener(() => StartCoroutine(WinPrizeButton()));
-        winButton.onClick.AddListener(() => StartCoroutine(WinButton()));
-        _failButton.onClick.AddListener(FailButton);
-        ObjectOpenSystem.Instance.newImageButton.onClick.AddListener(() => StartCoroutine(ObjectOpenSystem.Instance.NewImageButton()));
+        _winEmptyButton.onClick.AddListener(() => StartCoroutine(WinButton()));
+        _failButton.onClick.AddListener(() => StartCoroutine(FailButton()));
+        _startButton.onClick.AddListener(StartButton);
     }
-
 
     private void StartButton()
     {
-        SoundSystem.Instance.CallEffectStart();
-        GridReset.Instance.startButton();
-        MarketSystem.Instance.GameStart();
-        _startObject1.SetActive(true);
+        GameManager.Instance.gameStat = GameManager.GameStat.start;
         _startPanel.SetActive(false);
-        MaterialSystem.Instance.rivalPlayer.material = MaterialSystem.Instance.RivalMaterials[GameManager.Instance.level % MaterialSystem.Instance.RivalMaterials.Count];
-        GameManager.Instance.isStart = true;
-        RandomSystem.Instance.StartRandomSystem();
-        FightBarSystem.Instance.StartFightBar();
-        AnimControl.Instance.StartAnimencer();
-        FightBarSystem.Instance.StartBarPanel();
-        AdManager.Instance.bannerView.Hide();
-    }
-    private IEnumerator WinPrizeButton()
-    {
-        if (Application.internetReachability != NetworkReachability.NotReachable && AdManager.Instance.IsReadyInterstitialAd())
-        {
-            SoundSystem.Instance.CallEffectFinish();
-            AdManager.Instance.interstitial.Show();
-            BarSystem.Instance.BarStopButton();
-            winButton.enabled = false;
-            _winPrizeButton.enabled = false;
-            MarketSystem.Instance.FinishGameBackToTheMaterial();
-            Vibration.Vibrate(30);
-            yield return new WaitForSeconds(3);
-            if (!LevelSystem.Instance.newObjectTime)
-                SceneManager.LoadScene(0);
-            else
-                ObjectOpenSystem.Instance.NewObjectOpenPanel();
-        }
+
     }
     private IEnumerator WinButton()
     {
-        SoundSystem.Instance.CallEffectFinish();
-        MoneySystem.Instance.MoneyTextRevork(GameManager.Instance.addedMoney);
-        LevelSystem.Instance.NewLevelCheckField();
-        winButton.enabled = false;
         _winPrizeButton.enabled = false;
-        MarketSystem.Instance.FinishGameBackToTheMaterial();
-        yield return new WaitForSeconds(1.3f);
-        if (!LevelSystem.Instance.newObjectTime)
-            SceneManager.LoadScene(0);
-        else
-            ObjectOpenSystem.Instance.NewObjectOpenPanel();
+        GameManager.Instance.SetLevel();
+        if (GameManager.Instance.level % 5 == 0)
+        {
+            BarSystem.Instance.BarStopButton(0);
+            MoneySystem.Instance.MoneyTextRevork(GameManager.Instance.addedMoney);
+        }
+        yield return new WaitForSeconds(1);
+        SceneManager.LoadScene(0);
     }
-    private void FailButton()
+    private IEnumerator WinPrizeButton()
     {
-        if (Application.internetReachability != NetworkReachability.NotReachable && AdManager.Instance.IsReadyInterstitialAd())
-            AdManager.Instance.interstitial.Show();
-        SoundSystem.Instance.CallEffectFail();
-        MoneySystem.Instance.MoneyTextRevork(GameManager.Instance.addedMoney);
+        _winPrizeButton.enabled = false;
+        if (GameManager.Instance.level % 5 == 0)
+            BarSystem.Instance.BarStopButton(GameManager.Instance.addedMoney);
+        GameManager.Instance.SetLevel();
+        yield return new WaitForSeconds(2);
+        SceneManager.LoadScene(0);
+    }
+    private IEnumerator FailButton()
+    {
+        yield return new WaitForSeconds(1);
         SceneManager.LoadScene(0);
     }
     private void SettingButton()
@@ -138,50 +124,51 @@ public class Buttons : MonoSingleton<Buttons>
         _startPanel.SetActive(false);
         _settingGame.SetActive(true);
         _settingButton.gameObject.SetActive(false);
-        _money.SetActive(false);
+        _globalPanel.SetActive(false);
     }
     private void SettingBackButton()
     {
-        _startPanel.SetActive(true);
+        if (GameManager.Instance.gameStat == GameManager.GameStat.intro)
+            _startPanel.SetActive(true);
         _settingGame.SetActive(false);
         _settingButton.gameObject.SetActive(true);
-        _money.SetActive(true);
+        _globalPanel.SetActive(true);
     }
     private void SoundButton()
     {
-        if (GameManager.Instance.sound == 1)
+        GameManager gameManager = GameManager.Instance;
+
+        if (gameManager.sound == 1)
         {
-            GameManager.Instance.sound = 0;
             _soundButton.gameObject.GetComponent<Image>().sprite = _red;
             SoundSystem.Instance.MainMusicStop();
-            GameManager.Instance.sound = 0;
-            GameManager.Instance.SetSound();
+            gameManager.sound = 0;
         }
         else
         {
-            GameManager.Instance.sound = 1;
             _soundButton.gameObject.GetComponent<Image>().sprite = _green;
             SoundSystem.Instance.MainMusicPlay();
-            GameManager.Instance.sound = 1;
-            GameManager.Instance.SetSound();
+            gameManager.sound = 1;
         }
+
+        gameManager.SetSound();
     }
     private void VibrationButton()
     {
-        if (GameManager.Instance.vibration == 1)
+        GameManager gameManager = GameManager.Instance;
+
+        if (gameManager.vibration == 1)
         {
-            GameManager.Instance.vibration = 0;
             _vibrationButton.gameObject.GetComponent<Image>().sprite = _red;
-            GameManager.Instance.vibration = 0;
-            GameManager.Instance.SetVibration();
+            gameManager.vibration = 0;
         }
         else
         {
-            GameManager.Instance.vibration = 1;
             _vibrationButton.gameObject.GetComponent<Image>().sprite = _green;
-            GameManager.Instance.vibration = 1;
-            GameManager.Instance.SetVibration();
+            gameManager.vibration = 1;
         }
+
+        gameManager.SetVibration();
     }
 
 }

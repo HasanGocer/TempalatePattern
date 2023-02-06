@@ -6,28 +6,20 @@ using DG.Tweening;
 
 public class PointText : MonoSingleton<PointText>
 {
-    [SerializeField] private int moneyint, researchPointint;
-    [SerializeField] private float textMoveTime;
-    [SerializeField] private float moneyJumpDistance, reserarchJumpDistance;
-    [SerializeField] Ease moveEaseType;
+    [SerializeField] private int _OPMoneyInt;
+    [SerializeField] private float _textMoveTime;
+    [SerializeField] private float _moneyJumpDistance;
+    [SerializeField] Ease _moveEaseType = Ease.InOutBounce;
 
-    public IEnumerator CallPointMoneyText(GameObject Pos)
+    public IEnumerator CallPointMoneyText(GameObject Pos, int count, bool isCorrect = true)
     {
-        GameObject obj = ObjectPool.Instance.GetPooledObject(moneyint);
-        obj.GetComponent<TMP_Text>().text = ItemData.Instance.field.addedMoney.ToString();
+        GameObject obj = ObjectPool.Instance.GetPooledObject(_OPMoneyInt);
+        if (isCorrect) obj.GetComponent<TMP_Text>().color = Color.green;
+        else obj.GetComponent<TMP_Text>().color = Color.red;
+        obj.GetComponent<TMP_Text>().text = count.ToString();
         obj.transform.position = Pos.transform.position;
-        obj.transform.DOMove(new Vector3(Pos.transform.position.x, Pos.transform.position.y + moneyJumpDistance, Pos.transform.position.z), textMoveTime).SetEase(moveEaseType);
-        yield return new WaitForSeconds(textMoveTime);
-        ObjectPool.Instance.AddObject(moneyint, obj);
-    }
-
-    public IEnumerator CallPointResearchText(GameObject Pos)
-    {
-        GameObject obj = ObjectPool.Instance.GetPooledObject(researchPointint);
-        obj.GetComponent<TMP_Text>().text = ItemData.Instance.field.addedResearchPoint.ToString();
-        obj.transform.position = Pos.transform.position;
-        obj.transform.DOMove(new Vector3(Pos.transform.position.x, Pos.transform.position.y + reserarchJumpDistance, Pos.transform.position.z), textMoveTime).SetEase(moveEaseType);
-        yield return new WaitForSeconds(textMoveTime);
-        ObjectPool.Instance.AddObject(researchPointint, obj);
+        obj.transform.DOMove(new Vector3(Pos.transform.position.x, Pos.transform.position.y + _moneyJumpDistance, Pos.transform.position.z), _textMoveTime).SetEase(_moveEaseType);
+        yield return new WaitForSeconds(_textMoveTime);
+        ObjectPool.Instance.AddObject(_OPMoneyInt, obj);
     }
 }

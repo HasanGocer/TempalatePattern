@@ -24,8 +24,6 @@ public class MarketSystem : MonoSingleton<MarketSystem>
     public FieldBool fieldBool;
     public FieldRivalColor fieldPlayerColor;
 
-    [SerializeField] private GameObject _mainPlayer;
-    public GameObject marketMainPlayer;
     [SerializeField] private Button _useButton, _equipedButton, _moneyBuyButton, _addBuyButton;
     [SerializeField] private Text _moneyBuyPriceText;
     [SerializeField] private Button _marketOpenButton, _marketCloseButton;
@@ -36,7 +34,6 @@ public class MarketSystem : MonoSingleton<MarketSystem>
     public void MarketStart()
     {
         MarketOnOffPlacement();
-        PlayerMaterialPlacement();
         DownButtonPlacement();
         MarketStartPlacement();
     }
@@ -50,22 +47,14 @@ public class MarketSystem : MonoSingleton<MarketSystem>
     {
         Buttons.Instance._startPanel.SetActive(false);
         _marketOpenButton.gameObject.SetActive(false);
-        marketMainPlayer.SetActive(true);
         marketPanel.SetActive(true);
-        AnimControl.Instance.CallMarketAnim();
     }
 
     public void MarketCloseButton()
     {
         Buttons.Instance._startPanel.SetActive(true);
         _marketOpenButton.gameObject.SetActive(true);
-        marketMainPlayer.SetActive(false);
         marketPanel.SetActive(false);
-    }
-
-    public void FinishGameBackToTheMaterial()
-    {
-        _mainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldBool.equipedCount];
     }
 
     private void SelectMarketPlayerColorFieldButton(int count)
@@ -100,9 +89,6 @@ public class MarketSystem : MonoSingleton<MarketSystem>
         _equipedButton.gameObject.SetActive(true);
         _useButton.gameObject.SetActive(false);
         fieldBool.equipedCount = fieldCount;
-        _mainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldCount];
-        marketMainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldCount];
-        GameManager.Instance.MarketPlacementWrite(fieldBool);
     }
     private void SelectMarketPlayerColorMoneyBuyButton()
     {
@@ -116,7 +102,6 @@ public class MarketSystem : MonoSingleton<MarketSystem>
             _addBuyButton.gameObject.SetActive(false);
             fieldPlayerColor.PlayerImageLock[fieldCount].gameObject.SetActive(false);
             fieldBool.PlayerColor[fieldCount] = true;
-            GameManager.Instance.MarketPlacementWrite(fieldBool);
         }
     }
     private void SelectMarketPlayerColorAddBuyButton()
@@ -132,11 +117,6 @@ public class MarketSystem : MonoSingleton<MarketSystem>
             GameManager.Instance.MarketPlacementWrite(fieldBool);
          
          */
-    }
-    private void PlayerMaterialPlacement()
-    {
-        _mainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldBool.equipedCount];
-        marketMainPlayer.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material = fieldPlayerColor.PlayerColorMaterial[fieldBool.equipedCount];
     }
     private void DownButtonPlacement()
     {

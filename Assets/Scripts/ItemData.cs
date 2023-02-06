@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class ItemData : MonoSingleton<ItemData>
 {
-    //managerde bulunacak
-
     [System.Serializable]
     public class Field
     {
-
+        public int objectTypeCount, objectCount;
     }
 
     public Field field;
@@ -20,46 +18,65 @@ public class ItemData : MonoSingleton<ItemData>
     public Field max;
     public Field fieldPrice;
 
-    private void Start()
+    public void AwakeID()
     {
-        /*field.runnerSpeed = standart.runnerSpeed - (factor.runnerSpeed * constant.runnerSpeed);
-        fieldPrice.runnerSpeed = fieldPrice.runnerSpeed * factor.runnerSpeed;
+        field.objectTypeCount = standart.objectTypeCount + (factor.objectTypeCount * constant.objectTypeCount);
+        fieldPrice.objectTypeCount = fieldPrice.objectTypeCount * factor.objectTypeCount;
+        field.objectCount = standart.objectCount + (factor.objectCount * constant.objectCount);
+        fieldPrice.objectCount = fieldPrice.objectCount * factor.objectCount;
 
-        field.runnerCount = standart.runnerCount + (factor.runnerCount * constant.runnerCount);
-        fieldPrice.runnerCount = fieldPrice.runnerCount * factor.runnerCount;
-
-        if (field.runnerCount > max.runnerCount)
+        if (factor.objectTypeCount > maxFactor.objectTypeCount)
         {
-            field.runnerCount = max.runnerCount;
+            factor.objectTypeCount = maxFactor.objectTypeCount;
+            field.objectTypeCount = standart.objectTypeCount + (factor.objectTypeCount * constant.objectTypeCount);
+            fieldPrice.objectTypeCount = fieldPrice.objectTypeCount / (factor.objectTypeCount - 1);
+            fieldPrice.objectTypeCount = fieldPrice.objectTypeCount * factor.objectTypeCount;
         }
-
-
-        if (field.runnerSpeed < max.runnerSpeed)
+        if (factor.objectCount > maxFactor.objectCount)
         {
-            field.runnerSpeed = max.runnerSpeed;
-        }*/
-
+            factor.objectCount = maxFactor.objectCount;
+            field.objectCount = standart.objectCount + (factor.objectCount * constant.objectCount);
+            fieldPrice.objectCount = fieldPrice.objectCount / (factor.objectCount - 1);
+            fieldPrice.objectCount = fieldPrice.objectCount * factor.objectCount;
+        }
 
     }
 
-    /*public void RunnerCount()
+    public void SetObjectTypeCount()
     {
-        field.runnerCount = standart.runnerCount + (factor.runnerCount * constant.runnerCount);
+        factor.objectTypeCount++;
 
-        if (field.runnerCount > max.runnerCount)
+        field.objectTypeCount = standart.objectTypeCount + (factor.objectTypeCount * constant.objectTypeCount);
+        fieldPrice.objectTypeCount = fieldPrice.objectTypeCount / (factor.objectTypeCount - 1);
+        fieldPrice.objectTypeCount = fieldPrice.objectTypeCount * factor.objectTypeCount;
+
+        if (factor.objectTypeCount > maxFactor.objectTypeCount)
         {
-            field.runnerCount = max.runnerCount;
+            factor.objectTypeCount = maxFactor.objectTypeCount;
+            field.objectTypeCount = standart.objectTypeCount + (factor.objectTypeCount * constant.objectTypeCount);
+            fieldPrice.objectTypeCount = fieldPrice.objectTypeCount / (factor.objectTypeCount - 1);
+            fieldPrice.objectTypeCount = fieldPrice.objectTypeCount * factor.objectTypeCount;
         }
+
+        GameManager.Instance.FactorPlacementWrite(factor);
     }
 
-
-    public void RunnerSpeed()
+    public void SetObjectCount()
     {
-        field.runnerSpeed = standart.runnerSpeed - (factor.runnerSpeed * constant.runnerSpeed);
+        factor.objectCount++;
 
-        if (field.runnerSpeed < max.runnerSpeed)
+        field.objectCount = standart.objectCount + (factor.objectCount * constant.objectCount);
+        fieldPrice.objectCount = fieldPrice.objectCount / (factor.objectCount - 1);
+        fieldPrice.objectCount = fieldPrice.objectCount * factor.objectCount;
+
+        if (factor.objectCount > maxFactor.objectCount)
         {
-            field.runnerSpeed = max.runnerSpeed;
+            factor.objectCount = maxFactor.objectCount;
+            field.objectCount = standart.objectCount + (factor.objectCount * constant.objectCount);
+            fieldPrice.objectCount = fieldPrice.objectCount / (factor.objectCount - 1);
+            fieldPrice.objectCount = fieldPrice.objectCount * factor.objectCount;
         }
-    }*/
+
+        GameManager.Instance.FactorPlacementWrite(factor);
+    }
 }
