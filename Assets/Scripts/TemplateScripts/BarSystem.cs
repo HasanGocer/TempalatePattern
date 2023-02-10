@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class BarSystem : MonoSingleton<BarSystem>
 {
+    [Header("Finish_Bar_Field")]
+    [Space(10)]
+
     [SerializeField] private Image _barImage;
     [HideInInspector] public bool isFinish = true;
     private bool _goRight = true;
