@@ -5,46 +5,60 @@ using DG.Tweening;
 
 public class RunnerManager : MonoSingleton<RunnerManager>
 {
-    public int _OPRunnerCount;
-    public GameObject _runnerPos;
+    [Header("Walker_Field")]
+    [Space(10)]
 
-    public List<GameObject> Runner = new List<GameObject>();
+    [SerializeField] int _OPRunnerCount;
+    [SerializeField] int levelModRunnerPlusCount;
+    [SerializeField] float _spawnCoundownTime;
 
-    public IEnumerator StartRunner()
+    public List<GameObject> Walker = new List<GameObject>();
+
+    public void StartBossWalk()
     {
-        for (int i = 0; i < ItemData.Instance.field.runnerCount; i++)
+        BossManager bossManager = BossManager.Instance;
+
+        int bosCount = Random.Range(0, bossManager.BossTemplate.Count);
+        bossManager.boss = GetBossObject(bosCount, bossManager);
+        MyDoPath.Instance.StartNewBoss(bossManager.boss, bossManager.boss.GetComponent<WalkerID>());
+    }
+
+    public IEnumerator StartWalkerWalk(int walkerCount, int PathCount, ItemData itemData)
+    {
+        for (int i1 = itemData.field.walkerTypeCount; i1 >= 0; i1--)
         {
-            GameObject obj = ObjectPool.Instance.GetPooledObject(_OPRunnerCount);
-            obj.transform.position = _runnerPos.transform.position;
-            obj.GetComponent<PathSelection>().pathSelection = 0;
-            Runner.Add(obj);
-            MyDoPath.Instance.StartNewRunner(obj);
-            yield return new WaitForSeconds(0.1f);
+            MyDoPath.Instance.walkerCount += walkerCount + (levelModRunnerPlusCount * i1);
+            for (int i2 = 0; i2 < walkerCount + (levelModRunnerPlusCount * i1); i2++)
+            {
+                GameObject obj = GetObject(i1);
+                WalkerID walkerID = obj.GetComponent<WalkerID>();
+
+                WalkerStatPlacement(obj, walkerID, PathCount, i1, itemData.field.walkerHealth - (i1 * itemData.constant.walkerHealth));
+                yield return new WaitForSeconds(_spawnCoundownTime);
+            }
         }
     }
 
-    public void NewStartRunner()
+    public void RemoveWalker(GameObject walker)
     {
-        GameObject obj = ObjectPool.Instance.GetPooledObject(_OPRunnerCount);
-        obj.transform.position = _runnerPos.transform.position;
-        obj.GetComponent<PathSelection>().pathSelection = 0;
-        Runner.Add(obj);
-        MyDoPath.Instance.StartNewRunner(obj);
+        Walker.Remove(walker);
+        ObjectPool.Instance.AddObject(_OPRunnerCount + walker.GetComponent<WalkerID>().ID, walker);
     }
 
-    public IEnumerator SpeedUp()
+    private GameObject GetBossObject(int bosCount, BossManager bossManager)
     {
-        DOTween.PauseAll();
-        for (int i = 0; i < ItemData.Instance.field.runnerCount; i++)
-        {
-            Runner[i].transform.DOTogglePause();
-            ObjectPool.Instance.AddObject(_OPRunnerCount, Runner[i]);
-            GameObject obj = ObjectPool.Instance.GetPooledObject(_OPRunnerCount);
-            obj.transform.position = _runnerPos.transform.position;
-            obj.GetComponent<PathSelection>().pathSelection = 0;
-            Runner[i] = obj;
-            MyDoPath.Instance.StartNewRunner(obj);
-            yield return new WaitForSeconds(0.1f);
-        }
+        return Instantiate(bossManager.BossTemplate[bosCount]);
+    }
+    private GameObject GetObject(int ID)
+    {
+        return ObjectPool.Instance.GetPooledObject(_OPRunnerCount + ID);
+    }
+    private void WalkerStatPlacement(GameObject obj, WalkerID walkerID, int PathCount, int ID, int health)
+    {
+        Walker.Add(obj);
+        walkerID.pathSelection = PathCount;
+        walkerID.CharacterBar.StartCameraLook();
+        walkerID.StartWalkerID(ID, health);
+        MyDoPath.Instance.StartNewRunner(obj, walkerID, walkerID.pathSelection);
     }
 }

@@ -6,60 +6,95 @@ using DG.Tweening;
 public class MyDoPath : MonoSingleton<MyDoPath>
 {
     [System.Serializable]
-    public struct Balls
+    public class Ways
     {
-        public float length;
-        public List<GameObject> BallsGO;
-        public Vector3[] BallsV3;
+        public List<GameObject> WaysGO = new List<GameObject>();
     }
-    public Balls[] Ball;
 
-    private int Ways;
-    public float runnerTime;
 
-    private void Awake()
+    [Header("Path_Way")]
+    [Space(10)]
+
+    [SerializeField] List<Ways> _ways;
+    [SerializeField] float _walkShakeScalePower;
+    [SerializeField] float _maxWalkerDisance, _maxWalkerQuaternionDistance;
+    [SerializeField] float _speedFactor, _quaternionFactor;
+
+    [Header("Path_Way_Field")]
+    [Space(10)]
+
+    public int walkerCount = 0;
+
+    public void FirstSpawn()
     {
-        Ways = Ball.Length;
-        for (int i1 = 0; i1 < Ways; i1++)
-        {
-            Ball[i1].length = 0;
-            Ball[i1].BallsV3 = new Vector3[Ball[i1].BallsGO.Count + 1];
-            for (int i2 = 0; i2 < Ball[i1].BallsGO.Count - 1; i2++)
-            {
-                Ball[i1].length += Vector3.Distance(Ball[i1].BallsGO[i2].transform.position, Ball[i1].BallsGO[i2 + 1].transform.position);
-                Ball[i1].BallsV3[i2] = Ball[i1].BallsGO[i2].transform.position;
-                if (i2 == Ball[i1].BallsGO.Count - 2)
-                    Ball[i1].BallsV3[i2 + 1] = Ball[i1].BallsGO[i2 + 1].transform.position;
-            }
-            Ball[i1].length += Vector3.Distance(Ball[i1].BallsGO[Ball[i1].BallsV3.Length - 2].transform.position, RunnerManager.Instance._runnerPos.transform.position);
-            Ball[i1].BallsV3[Ball[i1].BallsV3.Length - 1] = RunnerManager.Instance._runnerPos.transform.position;
+        ItemData itemData = ItemData.Instance;
 
+        if (GameManager.Instance.level % 10 != 0)
+        {
+            for (int i = 0; i < _ways.Count; i++)
+                StartCoroutine(RunnerManager.Instance.StartWalkerWalk(itemData.field.walkerCount, i, itemData));
+        }
+        else
+        {
+            RunnerManager.Instance.StartBossWalk();
         }
     }
 
-    //Kullanýlmýyor
-    /*
-    public void StartRun()
+    public void StartNewBoss(GameObject boss, WalkerID walkerID)
     {
-        for (int i = 0; i < ItemData.Instance.field.runnerCount; i++)
+        WalkerPlacement(ref boss, _ways[0].WaysGO[0]);
+        StartCoroutine(WalkPart(boss, _ways[0].WaysGO, _speedFactor, walkerID, _maxWalkerDisance, true));
+    }
+
+    public void StartNewRunner(GameObject walker, WalkerID walkerID, int wayCount)
+    {
+        WalkerPlacement(ref walker, _ways[wayCount].WaysGO[0]);
+        StartCoroutine(WalkPart(walker, _ways[wayCount].WaysGO, _speedFactor, walkerID, _maxWalkerDisance, false));
+    }
+
+    public void WalkerPlacement(ref GameObject walker, GameObject pos)
+    {
+        walker.transform.position = pos.transform.position;
+    }
+
+    private IEnumerator WalkPart(GameObject walker, List<GameObject> pos, float factor, WalkerID walkerID, float maxWalkerDisance, bool isBoss, int wayCount = 0)
+    {
+
+        StartCoroutine(LookNewWaypoint(walker, pos[wayCount + 1], walkerID));
+
+        while (walkerID.isLive && GameManager.Instance.gameStat == GameManager.GameStat.start)
         {
-            GameObject obj = ObjectPool.Instance.GetPooledObject(RunnerManager.Instance._OPrunnerCount);
-            RunnerManager.Instance.Runner.Add(obj);
-            runnerTime = length[obj.GetComponent<PathSelection>().pathSelection] * ItemData.Instance.field.runnerSpeed;
-
-            Vector3[] pos = new Vector3[Balls[obj.GetComponent<PathSelection>().pathSelection].Count];
-            for (int i1 = 0; i1 < pos.Length; i1++)
-            {
-                pos[i1] = BallsWP[obj.GetComponent<PathSelection>().pathSelection, i1];
-            }
-            obj.transform.DOPath(pos, runnerTime, PathType.CatmullRom).SetEase(Ease.InOutSine).Loops();
+            Vector3 direction = (pos[wayCount + 1].transform.position - walker.transform.position).normalized;
+            if (!isBoss)
+                walker.transform.position += direction * factor * Time.deltaTime;
+            else
+                walker.transform.position += direction * factor * Time.deltaTime / 3;
+            walker.transform.DOShakeScale(Time.deltaTime / 2, _walkShakeScalePower);
+            yield return new WaitForSeconds(Time.deltaTime);
+            if (maxWalkerDisance > Vector3.Distance(walker.transform.position, pos[wayCount + 1].transform.position)) break;
         }
-    }*/
-
-    public void StartNewRunner(GameObject obj)
+        wayCount++;
+        if (wayCount <= pos.Count - 2 && walkerID.isLive && GameManager.Instance.gameStat == GameManager.GameStat.start) StartCoroutine(WalkPart(walker, pos, factor, walkerID, maxWalkerDisance, isBoss, wayCount));
+    }
+    private IEnumerator LookNewWaypoint(GameObject walker, GameObject newWayPoint, WalkerID walkerID)
     {
-        runnerTime = Ball[obj.GetComponent<PathSelection>().pathSelection].length * ItemData.Instance.field.runnerSpeed;
+        float lerpCount = 0;
+        Quaternion finishRotation;
+        SetQuaternion(walker, newWayPoint, out finishRotation);
 
-        obj.transform.DOPath(Ball[obj.GetComponent<PathSelection>().pathSelection].BallsV3, runnerTime, PathType.CatmullRom, PathMode.Full3D, 20, Color.black).SetEase(Ease.Linear).SetLoops(1000);
+        while (walkerID.isLive && GameManager.Instance.gameStat == GameManager.GameStat.start)
+        {
+            lerpCount += Time.deltaTime * _quaternionFactor;
+            walker.transform.rotation = Quaternion.Lerp(walker.transform.rotation, finishRotation, lerpCount);
+            yield return new WaitForSeconds(Time.deltaTime);
+            if (_maxWalkerQuaternionDistance > Quaternion.Angle(walker.transform.rotation, finishRotation)) break;
+        }
+    }
+    private void SetQuaternion(GameObject walker, GameObject newWayPoint, out Quaternion finishRotation)
+    {
+        Quaternion nowRotation = walker.transform.rotation;
+        walker.transform.LookAt(newWayPoint.transform);
+        finishRotation = walker.transform.rotation;
+        walker.transform.rotation = nowRotation;
     }
 }
