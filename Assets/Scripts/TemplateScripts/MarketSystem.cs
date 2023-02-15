@@ -32,9 +32,10 @@ public class MarketSystem : MonoSingleton<MarketSystem>
     [SerializeField] private GameObject _marketOpenPos, _marketClosePos;
     [SerializeField] GameObject _upImage, _downImage;
     public RectTransform marketPanel;
+    [SerializeField] GameObject _marketScrollPanel;
     [SerializeField] float _panelLerpMinDistance;
     [SerializeField] int _panelLerpFactor;
-    bool isOpen = true;
+    public bool isOpen = false;
 
     public void MarketStart()
     {
@@ -45,26 +46,36 @@ public class MarketSystem : MonoSingleton<MarketSystem>
 
     public void GameStart()
     {
+        _marketScrollPanel.SetActive(true);
         marketPanel.gameObject.SetActive(true);
+    }
+
+    public void GameFinish()
+    {
+        _marketScrollPanel.SetActive(false);
+        marketPanel.gameObject.SetActive(false);
+    }
+
+    public void MarketPanelOff()
+    {
+        _downImage.SetActive(false);
+        _upImage.SetActive(true);
+        StartCoroutine(MarketPanelMove());
     }
 
     private void MarketButton()
     {
-        if (isOpen)
+        if (!isOpen)
         {
-            Buttons.Instance.startPanel.SetActive(false);
+            Buttons.Instance.SettingPanelOff();
             _downImage.SetActive(true);
             _upImage.SetActive(false);
-            isOpen = false;
             StartCoroutine(MarketPanelMove());
         }
         else
         {
-            if (GameManager.Instance.gameStat == GameManager.GameStat.intro)
-                Buttons.Instance.startPanel.SetActive(true);
             _downImage.SetActive(false);
             _upImage.SetActive(true);
-            isOpen = true;
             StartCoroutine(MarketPanelMove());
         }
     }
@@ -89,6 +100,7 @@ public class MarketSystem : MonoSingleton<MarketSystem>
                 yield return new WaitForSeconds(Time.deltaTime);
                 if (_panelLerpMinDistance >= Vector2.Distance(marketPanel.position, tempPos.transform.position)) break;
             }
+            isOpen = false;
         }
         else
         {
@@ -100,6 +112,7 @@ public class MarketSystem : MonoSingleton<MarketSystem>
                 yield return new WaitForSeconds(Time.deltaTime);
                 if (_panelLerpMinDistance >= Vector2.Distance(marketPanel.position, tempPos.transform.position)) break;
             }
+            isOpen = true;
         }
 
 
@@ -115,6 +128,7 @@ public class MarketSystem : MonoSingleton<MarketSystem>
             case 0:
                 if (gameManager.money >= itemData.fieldPrice.castleHealth)
                 {
+                    SoundSystem.Instance.CallUpgradeSound();
                     moneySystem.MoneyTextRevork(itemData.fieldPrice.castleHealth * -1);
                     itemData.SetCastleHealth();
                     marketMainField.MarketMainFieldPrice[0].text = moneySystem.NumberTextRevork(itemData.fieldPrice.castleHealth);
@@ -124,6 +138,7 @@ public class MarketSystem : MonoSingleton<MarketSystem>
             case 1:
                 if (gameManager.money >= itemData.fieldPrice.gunAtackPower)
                 {
+                    SoundSystem.Instance.CallUpgradeSound();
                     moneySystem.MoneyTextRevork(itemData.fieldPrice.gunAtackPower * -1);
                     itemData.SetGunAtackPower();
                     marketMainField.MarketMainFieldPrice[1].text = moneySystem.NumberTextRevork(itemData.fieldPrice.gunAtackPower);
@@ -133,6 +148,7 @@ public class MarketSystem : MonoSingleton<MarketSystem>
             case 2:
                 if (gameManager.money >= itemData.fieldPrice.gunDistance)
                 {
+                    SoundSystem.Instance.CallUpgradeSound();
                     moneySystem.MoneyTextRevork(itemData.fieldPrice.gunDistance * -1);
                     itemData.SetGunDistance();
                     marketMainField.MarketMainFieldPrice[2].text = moneySystem.NumberTextRevork(itemData.fieldPrice.gunDistance);
@@ -142,6 +158,7 @@ public class MarketSystem : MonoSingleton<MarketSystem>
             case 3:
                 if (gameManager.money >= itemData.fieldPrice.gunReloadTime)
                 {
+                    SoundSystem.Instance.CallUpgradeSound();
                     moneySystem.MoneyTextRevork((int)itemData.fieldPrice.gunReloadTime * -1);
                     itemData.SetGunReloadTime();
                     marketMainField.MarketMainFieldPrice[3].text = moneySystem.NumberTextRevork((int)itemData.fieldPrice.gunReloadTime);
