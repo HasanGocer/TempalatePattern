@@ -10,12 +10,10 @@ public class RivalID : MonoBehaviour
     public RivalAI rivalAI;
     public Hit hit;
     public AnimController animController;
-    public LookCamera lookCamera;
-    public GunID gunID;
     public RivalHit rivalHit;
     public GameObject brokenBox;
     public GameObject hitPos;
-    public RoomID roomID;
+    public bool isRival;
 
     public void RivalIDStart()
     {

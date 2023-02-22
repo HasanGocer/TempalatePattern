@@ -7,7 +7,7 @@ public class ItemData : MonoSingleton<ItemData>
     [System.Serializable]
     public class Field
     {
-        public int castleHealth, gunDistance, gunAtackPower, walkerHealth, walkerCastleHitPower, walkerCount, walkerTypeCount;
+        public int castleHealth, gunDistance, gunAtackPower, walkerHealth, walkerCastleHitPower, walkerCount, walkerTypeCount, mainDistance, mainDamageSpeed, rivalDistance, mainHealth, mainDamage, rivalHealth, rivalDamage;
         public float gunReloadTime;
     }
 

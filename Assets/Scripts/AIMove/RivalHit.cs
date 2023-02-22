@@ -7,7 +7,6 @@ public class RivalHit : MonoBehaviour
     [SerializeField] private RivalID rivalID;
     [SerializeField] private float gunReloadTime = 0.5f;
     [SerializeField] private Hit hit;
-    [SerializeField] private GunID gunID;
     bool lookMain;
 
     public IEnumerator SearchMain()
@@ -17,7 +16,7 @@ public class RivalHit : MonoBehaviour
         while (rivalID.rivalAI.isLive)
         {
             yield return null;
-            if (GameManager.Instance.isStart)
+            if (GameManager.Instance.gameStat == GameManager.GameStat.start)
                 if (ItemData.Instance.field.rivalDistance > Vector3.Distance(gameObject.transform.position, ghostManager.mainPlayer.transform.position) && ghostManager.mainHealth > 0 && rivalID.rivalAI.isLive && !lookMain)
                 {
                     lookMain = true;
@@ -43,7 +42,7 @@ public class RivalHit : MonoBehaviour
 
         while (rivalID.rivalAI.isLive && ghostManager.mainHealth > 0)
         {
-            if (GameManager.Instance.isStart)
+            if (GameManager.Instance.gameStat == GameManager.GameStat.start)
                 if (ItemData.Instance.field.rivalDistance > Vector3.Distance(gameObject.transform.position, ghostManager.mainPlayer.transform.position) && ghostManager.mainHealth > 0 && rivalID.rivalAI.isLive)
                 {
                     print(31);
@@ -67,8 +66,6 @@ public class RivalHit : MonoBehaviour
     {
         while (lookMain && rivalID.rivalAI.isLive)
         {
-            SoundSystem.Instance.CallGunEffect();
-            StartCoroutine(ParticalSystem.Instance.CallShotPartical(gunID.gunShotPos, main));
             StartCoroutine(hit.HitPlayer(main.gameObject, 5));
             yield return new WaitForSeconds(gunReloadTime);
         }

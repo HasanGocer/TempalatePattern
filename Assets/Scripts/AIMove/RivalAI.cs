@@ -23,7 +23,6 @@ public class RivalAI : MonoBehaviour
         float lerpCount = 0;
         while (isLive)
         {
-            StartCoroutine(ParticalSystem.Instance.CallWalkPartical(gameObject));
             lerpCount += Time.deltaTime * AIManager.Instance.walkFactor * 0.8f;
             transform.position = Vector3.Lerp(transform.position, GhostManager.Instance.mainPlayer.transform.position, lerpCount);
             yield return new WaitForSeconds(Time.deltaTime);

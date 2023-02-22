@@ -14,15 +14,6 @@ public class RunnerManager : MonoSingleton<RunnerManager>
 
     public List<GameObject> Walker = new List<GameObject>();
 
-    public void StartBossWalk()
-    {
-        BossManager bossManager = BossManager.Instance;
-
-        int bosCount = Random.Range(0, bossManager.BossTemplate.Count);
-        bossManager.boss = GetBossObject(bosCount, bossManager);
-        MyDoPath.Instance.StartNewBoss(bossManager.boss, bossManager.boss.GetComponent<WalkerID>());
-    }
-
     public IEnumerator StartWalkerWalk(int walkerCount, int PathCount, ItemData itemData)
     {
         for (int i1 = itemData.field.walkerTypeCount; i1 >= 0; i1--)
@@ -45,10 +36,6 @@ public class RunnerManager : MonoSingleton<RunnerManager>
         ObjectPool.Instance.AddObject(_OPRunnerCount + walker.GetComponent<WalkerID>().ID, walker);
     }
 
-    private GameObject GetBossObject(int bosCount, BossManager bossManager)
-    {
-        return Instantiate(bossManager.BossTemplate[bosCount]);
-    }
     private GameObject GetObject(int ID)
     {
         return ObjectPool.Instance.GetPooledObject(_OPRunnerCount + ID);
@@ -57,7 +44,6 @@ public class RunnerManager : MonoSingleton<RunnerManager>
     {
         Walker.Add(obj);
         walkerID.pathSelection = PathCount;
-        walkerID.CharacterBar.StartCameraLook();
         walkerID.StartWalkerID(ID, health);
         MyDoPath.Instance.StartNewRunner(obj, walkerID, walkerID.pathSelection);
     }
