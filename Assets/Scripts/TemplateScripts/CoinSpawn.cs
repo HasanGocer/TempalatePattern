@@ -6,12 +6,12 @@ public class CoinSpawn : MonoSingleton<CoinSpawn>
 {
     [SerializeField] private int _OPCoinCount;
 
-    public void Spawn(GameObject pos)
+    public void Spawn(GameObject pos, GameObject Finish)
     {
-        StartCoroutine(SpawnEnum(pos));
+        StartCoroutine(SpawnEnum(pos, Finish));
     }
 
-    private IEnumerator SpawnEnum(GameObject pos)
+    private IEnumerator SpawnEnum(GameObject pos, GameObject Finish)
     {
         int coinCount;
         coinCount = Random.Range(5, 12);
@@ -33,7 +33,7 @@ public class CoinSpawn : MonoSingleton<CoinSpawn>
         yield return new WaitForSeconds(1);
 
         for (int i = 0; i < coinCount; i++)
-            StartCoroutine(Walk(coins[i], MainManager.Instance.Guns[MainManager.Instance.gunCount]));
+            StartCoroutine(Walk(coins[i], Finish));
     }
     private IEnumerator Walk(GameObject obj, GameObject Finish)
     {
@@ -47,7 +47,6 @@ public class CoinSpawn : MonoSingleton<CoinSpawn>
             yield return new WaitForSeconds(Time.deltaTime);
             if (2 > Vector3.Distance(obj.transform.position, Finish.transform.position + new Vector3(0, 4, 0)))
             {
-                SoundSystem.Instance.CallCoinSound();
                 ObjectPool.Instance.AddObject(_OPCoinCount, obj);
                 break;
             }
