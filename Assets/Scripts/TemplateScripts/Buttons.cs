@@ -58,7 +58,6 @@ public class Buttons : MonoSingleton<Buttons>
 
     public IEnumerator LoadingScreen()
     {
-        MainManager mainManager = MainManager.Instance;
 
         _loadingPanel.SetActive(true);
         _globalPanel.SetActive(false);
@@ -69,8 +68,6 @@ public class Buttons : MonoSingleton<Buttons>
         startPanel.SetActive(true);
 
         MarketSystem.Instance.MarketStart();
-        mainManager.StartMainManager();
-        mainManager.GunStartPlacement();
     }
     public IEnumerator NoThanxOnActive()
     {
@@ -124,10 +121,7 @@ public class Buttons : MonoSingleton<Buttons>
         GameManager.Instance.gameStat = GameManager.GameStat.start;
         startPanel.SetActive(false);
 
-        StartCoroutine(GunFire.Instance.GunFireStart());
-        MainBar.Instance.MainBarStart();
         MarketSystem.Instance.GameStart();
-        MyDoPath.Instance.FirstSpawn();
     }
     private IEnumerator WinButton()
     {
@@ -135,11 +129,8 @@ public class Buttons : MonoSingleton<Buttons>
 
         _winPrizeButton.enabled = false;
         gameManager.SetLevel();
-        if (gameManager.level % WalkerManager.Instance.bossModLevel == 0)
-        {
-            BarSystem.Instance.BarStopButton(0);
-            MoneySystem.Instance.MoneyTextRevork(gameManager.addedMoney);
-        }
+        BarSystem.Instance.BarStopButton(0);
+        MoneySystem.Instance.MoneyTextRevork(gameManager.addedMoney);
         yield return new WaitForSeconds(finishWaitTime);
 
         int templevel = gameManager.level;
@@ -153,8 +144,7 @@ public class Buttons : MonoSingleton<Buttons>
         GameManager gameManager = GameManager.Instance;
 
         _winPrizeButton.enabled = false;
-        if (gameManager.level % WalkerManager.Instance.bossModLevel == 0)
-            BarSystem.Instance.BarStopButton(gameManager.addedMoney);
+        BarSystem.Instance.BarStopButton(gameManager.addedMoney);
         yield return new WaitForSeconds(finishWaitTime);
 
         int templevel = gameManager.level / 10;
