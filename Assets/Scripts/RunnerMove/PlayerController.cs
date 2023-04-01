@@ -5,46 +5,66 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    private PlayerInputs PlayerInputs;
-    public float Verticalspeed = 1f, horizontalSpeed;
-    private Vector3 movement;
+    public float speed;
     public float xBound = 4.3f;
+    [SerializeField] Rigidbody rb;
 
-    private void Awake()
-    {
-        PlayerInputs = new PlayerInputs();
-    }
-
-    void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-    }
 
     void Update()
     {
-        if (GameManager.Instance.enumStat == GameManager.GameStat.start)
+        if (GameManager.Instance.gameStat == GameManager.GameStat.start)
             Move();
     }
 
     public void Move()
     {
         AutoMoveForward();
-
-        Vector2 inputVector = PlayerInputs.Player.Movement.ReadValue<Vector2>();
-
-        movement = new Vector3(inputVector.x, 0, 0);
-        //sað sol
-        transform.position = Vector3.Lerp(transform.position, transform.position + movement *horizontalSpeed * Time.deltaTime, Time.deltaTime);
-        // transform.Translate(movement * speed / 100 * Time.deltaTime);
-
+        LeftRightTouchMove();
         BoundaryCheck();
     }
 
-    private void AutoMoveForward()
-    {//ileri
-        transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.forward * Verticalspeed  * Time.deltaTime, Time.deltaTime);
+    private void LeftRightTouchMove()
+    {
+        int touchCount = Input.touchCount;
+
+        if (touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            float xdistance;
+            switch (touch.phase)
+            {
+                case UnityEngine.TouchPhase.Began:
+                    if (touch.position.x < 50) xdistance = xBound * -1;
+                    else if (touch.position.x > Camera.main.pixelWidth - 50) xdistance = xBound;
+                    else xdistance = (touch.position.x / (Camera.main.pixelWidth - 100)) * (xBound * 2) - xBound;
+                    gameObject.transform.position = new Vector3(xdistance, gameObject.transform.position.y, gameObject.transform.position.z);
+                    break;
+                case UnityEngine.TouchPhase.Moved:
+                    if (touch.position.x < 50) xdistance = xBound * -1;
+                    else if (touch.position.x > Camera.main.pixelWidth - 50) xdistance = xBound;
+                    else xdistance = (touch.position.x / (Camera.main.pixelWidth - 100)) * (xBound * 2) - xBound;
+                    gameObject.transform.position = new Vector3(xdistance, gameObject.transform.position.y, gameObject.transform.position.z);
+                    break;
+            }
+        }
+
     }
 
+    /*private void LeftRightMove()
+    {
+        Vector2 inputVector = PlayerInputs.Player.Movement.ReadValue<Vector2>();
+        
+        print(inputVector.x);
+        movement = new Vector3(inputVector.x, 0, 0);
+        transform.position = Vector3.Lerp(transform.position, transform.position + movement * horizontalSpeed * Time.deltaTime, Time.deltaTime);
+
+    }*/
+    private void AutoMoveForward()
+    {//ileri
+        rb.velocity = Vector3.zero;
+        rb.velocity = Vector3.forward * speed;
+        //transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.forward * Verticalspeed * Time.deltaTime, Time.deltaTime / 10);
+    }
     private void BoundaryCheck()
     {
         if (transform.position.x <= -xBound)
@@ -55,16 +75,5 @@ public class PlayerController : MonoBehaviour
         {
             transform.position = new Vector3(xBound, transform.position.y, transform.position.z);
         }
-    }
-
-
-    private void OnEnable()
-    {
-        PlayerInputs.Enable();
-    }
-
-    private void OnDisable()
-    {
-        PlayerInputs.Disable();
     }
 }
