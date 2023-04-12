@@ -10,6 +10,7 @@ public class PlayerManager : MonoSingleton<PlayerManager>
     public void PlusPlayerItemCount(int plus)
     {
         _playerItemCount += plus;
+        if (_playerItemCount > 80) _playerItemCount = 80;
     }
     public void PlusPlayerMoneyCount(int plus)
     {
